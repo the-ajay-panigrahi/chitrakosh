@@ -75,7 +75,7 @@ const Login = () => {
   };
 
   return (
-    <div className="bg-[url(bg.png)] w-screen h-screen bg-no-repeat bg-cover flex justify-center items-center">
+    <div className="bg-[url(./bg.png)] w-screen h-screen bg-no-repeat bg-cover flex justify-center items-center">
       <div className="pt-4 cursor-pointer absolute top-0">
         <img
           src="logo.png"
