@@ -1,17 +1,14 @@
 import { signOut } from "firebase/auth";
 import React from "react";
 import { auth } from "../utils/firebase";
-import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import Footer from "./Footer";
 
 const Browse = () => {
   const user = useSelector((store) => store.user);
-
-  const navigate = useNavigate();
   const handleSignOut = () => {
     signOut(auth)
       .then(() => {
-        navigate("/");
       })
       .catch((error) => {
         console.log(error);
@@ -41,6 +38,7 @@ const Browse = () => {
           </span>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };
