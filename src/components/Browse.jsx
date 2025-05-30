@@ -1,44 +1,26 @@
-import { signOut } from "firebase/auth";
-import React from "react";
-import { auth } from "../utils/firebase";
 import { useSelector } from "react-redux";
-import Footer from "./Footer";
+import useNowPlayingMovies from "../hooks/useNowPlayingMovies";
+import Header from "./Header";
+import MainContainer from "./MainContainer";
+import MovieList from "./MovieList";
+import usePopularMovies from "../hooks/usePopularMovies";
+import useTopRatedMovies from "../hooks/useTopRatedMovies";
+import useUpcomingMovies from "../hooks/useUpcomingMovies";
 
 const Browse = () => {
-  const user = useSelector((store) => store.user);
-  const handleSignOut = () => {
-    signOut(auth)
-      .then(() => {
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  };
-
+  const movie = useSelector((store) => store.movie);
+  useNowPlayingMovies();
+  usePopularMovies();
+  useTopRatedMovies();
+  useUpcomingMovies();
   return (
-    <div>
-      <div className="pt-4 flex justify-between max-w-7xl mx-auto items-center">
-        <img
-          src="logo.png"
-          alt="logo"
-          className="w-16 hover:scale-125 transition-all duration-150 ease-in-out cursor-pointer"
-        />
-        <div className="flex gap-4 justify-center items-center">
-          <img
-            src={user?.photoURL ? user.photoURL : ""}
-            alt="user profile"
-            title={user?.displayName}
-            className="w-12 rounded-full cursor-pointer hover:scale-110 transition-all duration-150 ease-in-out"
-          />
-          <span
-            className="font-bold text-lg cursor-pointer"
-            onClick={handleSignOut}
-          >
-            (Sign out)
-          </span>
-        </div>
-      </div>
-      <Footer />
+    <div className="bg-slate-950">
+      <Header />
+      <MainContainer />
+      <MovieList title={"Now Playing"} movies={movie.nowPlayingMovies} />
+      <MovieList title={"Top Rated"} movies={movie.topRatedMovies} />
+      <MovieList title={"Popular"} movies={movie.popularMovies} />
+      <MovieList title={"Upcoming"} movies={movie.upcomingMovies} />
     </div>
   );
 };

@@ -1,155 +1,151 @@
 import React, { useRef, useState } from "react";
-import { checkFormValidation } from "../utils/formValidate";
+import Header from "./Header";
+import validateForm from "../utils/formValidation.js";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   updateProfile,
 } from "firebase/auth";
-import { auth } from "../utils/firebase";
-import { addUser } from "../utils/userSlice";
+import { auth } from "../../firebase";
 import { useDispatch } from "react-redux";
-import Footer from "./Footer";
+import { addUser } from "../utils/store/userSlice";
 
 const Login = () => {
   const [isSignInForm, setIsSignInForm] = useState(true);
   const dispatch = useDispatch();
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
   const name = useRef(null);
-  const email = useRef(null);
+  const userEmail = useRef(null);
   const password = useRef(null);
-  const photoURL = useRef(null);
+  const profileURL = useRef(null);
 
-  const handleAuthentication = () => {
-    const notValid = checkFormValidation(
-      email.current.value,
-      password.current.value
+  const handleFormValidation = async () => {
+    setError(null);
+
+    const message = validateForm(
+      name?.current?.value,
+      userEmail?.current?.value,
+      password?.current?.value
     );
-
-    setError(notValid);
-
-    if (notValid) return;
+    if (message) {
+      setError(message);
+      return;
+    }
 
     if (!isSignInForm) {
-      createUserWithEmailAndPassword(
-        auth,
-        email.current.value,
-        password.current.value
-      )
-        .then(() => {
-          updateProfile(auth.currentUser, {
-            displayName: name.current.value,
-            photoURL: photoURL.current.value,
-          })
-            .then(() => {
-              const { email, displayName, photoURL, uid } = auth.currentUser;
-              dispatch(addUser({ email, displayName, photoURL, uid }));
-            })
-            .catch((error) => {
-              console.log(error);
-            });
-        })
-        .catch((error) => {
-          const errorCode = error.code;
-          const errorMessage = error.message;
-          setError(errorCode + " - " + errorMessage);
+      try {
+        await createUserWithEmailAndPassword(
+          auth,
+          userEmail.current.value,
+          password.current.value
+        );
+
+        await updateProfile(auth.currentUser, {
+          displayName: name.current.value,
+          photoURL: profileURL.current.value,
         });
+
+        const { uid, displayName, email, photoURL } = auth.currentUser;
+        dispatch(addUser({ uid, displayName, email, photoURL }));
+      } catch (error) {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        console.log(errorCode + " - " + errorMessage);
+        setError(errorMessage);
+      }
     } else {
-      signInWithEmailAndPassword(
-        auth,
-        email.current.value,
-        password.current.value
-      )
-        .then((userCredential) => {
-          const user = userCredential.user;
-        })
-        .catch((error) => {
-          const errorCode = error.code;
-          const errorMessage = error.message;
-          setError(errorCode + " - " + errorMessage);
-        });
+      try {
+        await signInWithEmailAndPassword(
+          auth,
+          userEmail.current.value,
+          password.current.value
+        );
+      } catch (error) {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        console.log(errorCode + " - " + errorMessage);
+        setError(errorMessage);
+      }
     }
   };
 
   return (
-    <div className="h-screen overflow-hidden">
-      <div
-        style={{ backgroundImage: "url(/bg.png)" }}
-        className="w-screen h-screen  bg-no-repeat bg-cover flex justify-center items-center"
-      >
-        <div className="pt-4 cursor-pointer absolute top-0">
-          <img
-            src="logo.png"
-            alt="logo"
-            className="w-32 hover:scale-125 transition-all duration-150 ease-in-out mx-auto md:mx-14"
+    <div className="flex justify-center items-center h-screen">
+      <div className="absolute top-0 h-screen w-screen ">
+        <img
+          src="/bg.png"
+          alt="background"
+          className="w-full h-full object-cover"
+        />
+      </div>
+
+      <Header />
+      <div className="relative z-30 bg-black/95 m-3 text-white md:w-1/2 lg:w-1/3 xl:w-1/4 p-6 rounded-xl">
+        <h1 className="text-2xl md:text-4xl text-center font-bold mb-4 md:mb-7 ">
+          {isSignInForm ? "Sign In" : "Sign Up"}
+        </h1>
+        <form onSubmit={(event) => event.preventDefault()}>
+          {!isSignInForm && (
+            <input
+              className="bg-white text-black placeholder:text-black px-3 rounded font-medium py-1 md:py-3 w-full text-md md:text-lg mb-2 md:mb-3"
+              type="text"
+              placeholder="Enter your full name"
+              ref={name}
+            />
+          )}
+          <input
+            className="bg-white text-black placeholder:text-black px-3 rounded font-medium py-1 md:py-3 w-full text-md md:text-lg mb-2 md:mb-3"
+            type="email"
+            placeholder="Enter your email"
+            ref={userEmail}
           />
-        </div>
-        <div className="bg-black/90 flex flex-col justify-evenly items-center text-white w-[95%] max-w-lg rounded-2xl px-5 lg:px-14 py-10">
-          <h2 className="text-2xl md:text-4xl font-bold mb-5 sm:mb-10">
-            {isSignInForm ? "Sign In" : "Sign Up"}
-          </h2>
-          <form
-            className="flex flex-col w-full gap-3"
-            onSubmit={(event) => {
-              event.preventDefault();
-            }}
-          >
-            {!isSignInForm && (
-              <input
-                className="bg-slate-700 font-medium rounded-lg px-4 py-3"
-                type="text"
-                placeholder="Enter your full name"
-                ref={name}
-              />
-            )}
-
+          <input
+            className="bg-white text-black placeholder:text-black px-3 rounded font-medium py-1 md:py-3 w-full text-md md:text-lg mb-2 md:mb-3"
+            type="password"
+            placeholder="Enter your password"
+            ref={password}
+            autoComplete=""
+          />
+          {!isSignInForm && (
             <input
-              className="bg-slate-700 font-medium rounded-lg px-4 py-3"
-              type="email"
-              placeholder="Enter your email"
-              ref={email}
+              className="bg-white text-black placeholder:text-black px-3 rounded font-medium py-1 md:py-3 w-full text-md md:text-lg mb-2 md:mb-3"
+              type="text"
+              placeholder="Enter your profile image url"
+              ref={profileURL}
             />
-            <input
-              className="bg-slate-700 font-medium rounded-lg px-4 py-3"
-              type="password"
-              placeholder="Enter your password"
-              ref={password}
-              autoComplete=""
-            />
-
-            {!isSignInForm && (
-              <input
-                className="bg-slate-700 font-medium rounded-lg px-4 py-3"
-                type="text"
-                placeholder="Enter your profile url"
-                ref={photoURL}
-              />
-            )}
-
-            {error && (
-              <p className="text-red-500 font-medium text-xl text-center mt-2">
+          )}
+          {error && (
+            <>
+              <p className="text-xl mb-1 text-red-500 font-bold text-center">
                 {error}
               </p>
-            )}
-            <button
-              className="bg-red-600 py-3 mt-4 rounded-lg font-medium sm:font-bold text-md sm:text-lg cursor-pointer hover:bg-red-700 transition-colors duration-150"
-              onClick={handleAuthentication}
-            >
-              {isSignInForm ? "Sign In" : "Sign Up"}
-            </button>
-          </form>
-          <p
-            className="text-sm mt-5 sm:text-lg font-medium cursor-pointer hover:text-gray-300"
-            onClick={() => {
-              setIsSignInForm(!isSignInForm);
-            }}
+              {error === "Invalid Password..." && (
+                <ul className="bg-black text-center mb-5 font-medium text-md text-red-400">
+                  <li>Minimum 8, maximum 15 characters</li>
+                  <li>At least 1 lowercase letter</li>
+                  <li>At least 1 uppercase letter</li>
+                  <li>At least 1 digit</li>
+                  <li>At least 1 special character: @.#$!%*?&</li>
+                </ul>
+              )}
+            </>
+          )}
+          <button
+            className="bg-orange-400 w-full py-2 md:py-3 rounded font-bold text-md md:text-lg hover:bg-orange-500 cursor-pointer transition-colors duration-150 mt-2"
+            onClick={handleFormValidation}
           >
-            {isSignInForm
-              ? " New to Chitra Kosh? Sign up now."
-              : "Already a user? Sign In..."}
-          </p>
-        </div>
+            {isSignInForm ? "Sign In" : "Sign Up"}
+          </button>
+        </form>
+        <p
+          className="font-medium text-center mt-2 md:mt-5 hover:text-gray-300 cursor-pointer"
+          onClick={() => setIsSignInForm(!isSignInForm)}
+        >
+          {isSignInForm
+            ? "New to Chitra Kosh? sign up now!"
+            : "Already a user? sign in now!"}
+        </p>
       </div>
-      <Footer />
     </div>
   );
 };
