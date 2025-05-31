@@ -6,9 +6,11 @@ import MovieList from "./MovieList";
 import usePopularMovies from "../hooks/usePopularMovies";
 import useTopRatedMovies from "../hooks/useTopRatedMovies";
 import useUpcomingMovies from "../hooks/useUpcomingMovies";
+import AISearchPage from "./AISearchPage";
 
 const Browse = () => {
   const movie = useSelector((store) => store.movie);
+  const showSearch = useSelector((store) => store.gemini.enableSearch);
   useNowPlayingMovies();
   usePopularMovies();
   useTopRatedMovies();
@@ -16,11 +18,17 @@ const Browse = () => {
   return (
     <div className="bg-slate-950">
       <Header />
-      <MainContainer />
-      <MovieList title={"Now Playing"} movies={movie.nowPlayingMovies} />
-      <MovieList title={"Top Rated"} movies={movie.topRatedMovies} />
-      <MovieList title={"Popular"} movies={movie.popularMovies} />
-      <MovieList title={"Upcoming"} movies={movie.upcomingMovies} />
+      {showSearch ? (
+        <AISearchPage />
+      ) : (
+        <>
+          <MainContainer />
+          <MovieList title={"Now Playing"} movies={movie.nowPlayingMovies} />
+          <MovieList title={"Top Rated"} movies={movie.topRatedMovies} />
+          <MovieList title={"Popular"} movies={movie.popularMovies} />
+          <MovieList title={"Upcoming"} movies={movie.upcomingMovies} />
+        </>
+      )}
     </div>
   );
 };

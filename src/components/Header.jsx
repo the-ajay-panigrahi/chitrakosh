@@ -4,11 +4,13 @@ import { auth } from "../../firebase";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { addUser, removeUser } from "../utils/store/userSlice";
+import { setShowSearch } from "../utils/store/geminiSlice";
 
 const Header = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const user = useSelector((store) => store.user);
+  const showSearch = useSelector((store) => store.gemini.enableSearch);
 
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
@@ -48,6 +50,14 @@ const Header = () => {
       />
       {user && (
         <div className="flex gap-4">
+          <button
+            className="font-bold text-md cursor-pointer bg-purple-700 px-2 py-2 rounded-lg hover:bg-purple-800 transition-colors duration-150"
+            onClick={() => {
+              dispatch(setShowSearch());
+            }}
+          >
+            {showSearch ? "Home" : "AI Movie Search"}
+          </button>
           <img
             src={user && user.photoURL ? user.photoURL : "/default-user.png"}
             alt="user-img"
@@ -55,7 +65,7 @@ const Header = () => {
             title={user?.displayName}
           />
           <button
-            className="font-bold text-xl cursor-pointer"
+            className="font-bold text-lg cursor-pointer"
             onClick={handleSignOut}
           >
             (Sign Out)
